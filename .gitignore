@@ -1,0 +1,6 @@
+# Autolisp backup files
+*._ls
+# Autocad fast loading files
+*.fas
+# Autocad executable
+*.vlx
