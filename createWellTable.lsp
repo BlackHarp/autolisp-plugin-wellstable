@@ -112,6 +112,16 @@
 ;;;		 (vl-prin1-to-string (- (getvar "millisecs") startTime))))
 ;;;  (princ "\n")
 
+  (setq wellBaseCountTotal 0
+	wellBaseAddon5CountTotal 0
+	wellBaseAddon10CountTotal 0
+	wellBaseTopCountTotal 0
+	wellTopAddon1000CountTotal 0
+	wellTopAddon500CountTotal 0
+	wellTopAddon150CountTotal 0
+	wellTopAddon66CountTotal 0
+	wellTopHeadCountTotal 0)
+  
   (foreach well wellDataList
       (progn
 	
@@ -119,8 +129,12 @@
 	(getAddonsCount)
 	(setRowData)
 	
+	
       )
   )
+
+  (setRowTotal)
+  
   ;;(alert (getvar "REGENMODE"))
   (setvar "REGENMODE" 1)
   
@@ -335,17 +349,26 @@
 
 	(foreach wellDiameter wellDiameterList
 	  (vla-settext WellTable tableRows tableColumns 1)
+	  (setq wellBaseCountTotal (1+ wellBaseCountTotal))
 	  (vla-settext WellTable tableRows (+ tableColumns 1) (ifZeroSetDash wellBaseAddon5Count))
+	  (if (> wellBaseAddon5Count 0) (setq wellBaseAddon5CountTotal (+ wellBaseAddon5CountTotal wellBaseAddon5Count)))
 	  (vla-settext WellTable tableRows (+ tableColumns 2) (ifZeroSetDash wellBaseAddon10Count))
+	  (if (> wellBaseAddon10Count 0) (setq wellBaseAddon10CountTotal (+ wellBaseAddon10CountTotal wellBaseAddon10Count)))
 	  (setq tableColumns (+ tableColumns 3))
 	  (vla-settext WellTable tableRows tableColumns 1)
+	  (setq wellBaseTopCountTotal (1+ wellBaseTopCountTotal))
 	)
 	(setq tableColumns (+ tableColumns 1))
 	(vla-settext WellTable tableRows tableColumns (ifZeroSetDash wellTopAddon150Count))
+  	(if (> wellTopAddon150Count 0) (setq wellTopAddon150CountTotal (+ wellTopAddon150CountTotal wellTopAddon150Count)))
 	(vla-settext WellTable tableRows (+ tableColumns 1) (ifZeroSetDash wellTopAddon500Count))
+  	(if (> wellTopAddon500Count 0) (setq wellTopAddon500CountTotal (+ wellTopAddon500CountTotal wellTopAddon500Count)))
 	(vla-settext WellTable tableRows (+ tableColumns 2) (ifZeroSetDash wellTopAddon1000Count))
+  	(if (> wellTopAddon1000Count 0) (setq wellTopAddon1000CountTotal (+ wellTopAddon1000CountTotal wellTopAddon1000Count)))
 	(vla-settext WellTable tableRows (+ tableColumns 3) 1)
+  	(setq wellTopAddon66CountTotal (1+ wellTopAddon66CountTotal))
 	(vla-settext WellTable tableRows (+ tableColumns 4) 1)
+  	(setq wellTopHeadCountTotal (1+ wellTopHeadCountTotal))
 
 	(vla-settext WellTable tableRows (+ tableColumns 5) (fix wellTopAddonsError))
 	
@@ -357,6 +380,22 @@
 ;;;		       (vl-prin1-to-string (- (getvar "millisecs") startTime))))
 ;;;  	(princ "\n")
 
+)
+
+(defun setRowTotal (/)
+  (vla-InsertRows WellTable tableRows RowHeight 1)
+  (vla-MergeCells WellTable tableRows tableRows 0 6)
+  (vla-settext WellTable tableRows 0 "Итого")
+  (vla-settext WellTable tableRows 7 "-")
+  (vla-settext WellTable tableRows 8 wellBaseCountTotal)
+  (vla-settext WellTable tableRows 9 wellBaseAddon5CountTotal)
+  (vla-settext WellTable tableRows 10 wellBaseAddon10CountTotal)
+  (vla-settext WellTable tableRows 11 wellBaseTopCountTotal) 
+  (vla-settext WellTable tableRows 12 wellTopAddon150CountTotal)
+  (vla-settext WellTable tableRows 13 wellTopAddon500CountTotal)
+  (vla-settext WellTable tableRows 14 wellTopAddon1000CountTotal)
+  (vla-settext WellTable tableRows 15 wellTopAddon66CountTotal)
+  (vla-settext WellTable tableRows 16 wellTopHeadCountTotal)
 )
 
 (defun ifZeroSetDash (value /)
