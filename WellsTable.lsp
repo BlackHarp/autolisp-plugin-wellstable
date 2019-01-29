@@ -59,7 +59,7 @@
       
       
       (princ "\n*** Select objects and press Enter *** ")
-      (if (setq objSet (ssget '((0 . "AECC_STRUCTURE") (8 . "К2_План"))))
+      (if (setq objSet (ssget '((0 . "AECC_STRUCTURE"))))
 	(progn
 
 	  (setq startTime (getvar "millisecs"))
