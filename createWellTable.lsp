@@ -335,15 +335,15 @@
 
 	(foreach wellDiameter wellDiameterList
 	  (vla-settext WellTable tableRows tableColumns 1)
-	  (vla-settext WellTable tableRows (+ tableColumns 1) wellBaseAddon5Count)
-	  (vla-settext WellTable tableRows (+ tableColumns 2) wellBaseAddon10Count)
+	  (vla-settext WellTable tableRows (+ tableColumns 1) (ifZeroSetDash wellBaseAddon5Count))
+	  (vla-settext WellTable tableRows (+ tableColumns 2) (ifZeroSetDash wellBaseAddon10Count))
 	  (setq tableColumns (+ tableColumns 3))
 	  (vla-settext WellTable tableRows tableColumns 1)
 	)
 	(setq tableColumns (+ tableColumns 1))
-	(vla-settext WellTable tableRows tableColumns wellTopAddon150Count)
-	(vla-settext WellTable tableRows (+ tableColumns 1) wellTopAddon500Count)
-	(vla-settext WellTable tableRows (+ tableColumns 2) wellTopAddon1000Count)
+	(vla-settext WellTable tableRows tableColumns (ifZeroSetDash wellTopAddon150Count))
+	(vla-settext WellTable tableRows (+ tableColumns 1) (ifZeroSetDash wellTopAddon500Count))
+	(vla-settext WellTable tableRows (+ tableColumns 2) (ifZeroSetDash wellTopAddon1000Count))
 	(vla-settext WellTable tableRows (+ tableColumns 3) 1)
 	(vla-settext WellTable tableRows (+ tableColumns 4) 1)
 
@@ -357,4 +357,8 @@
 ;;;		       (vl-prin1-to-string (- (getvar "millisecs") startTime))))
 ;;;  	(princ "\n")
 
+)
+
+(defun ifZeroSetDash (value /)
+  (if (= value 0) "-" value)
 )
