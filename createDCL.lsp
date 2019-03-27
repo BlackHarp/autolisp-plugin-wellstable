@@ -14,7 +14,7 @@
       ) ;_ end of setq
 	(foreach item
         '("dlg:dialog{label=\"Oaaeeoa Eieiaoaa\";"
-	": popup_list{key=\"wellTypeList\"; label =\"Select Well Type\";"
+	": popup_list{key=\"netTypeList\"; label =\"Select Well Type\";"
     	"fixed_width_font=false; width=15; value=0;}"
 	": popup_list{key=\"wellTopList\"; label =\"Select Well Top\";"
     	"fixed_width_font=false; width=35; value=0;}"
@@ -25,8 +25,8 @@
   (setq dcl_id (load_dialog file))
   (new_dialog "dlg" dcl_id)
 
-  (start_list "wellTypeList" 3)
-  (mapcar 'add_list wellTypeList)
+  (start_list "netTypeList" 3)
+  (mapcar 'add_list netTypeList)
   (end_list)
 
   (start_list "wellTopList" 3)
@@ -49,12 +49,12 @@
 (defun saveVars ()
 
   ;;;--- Get the selected item from the first list
-  (setq sStr1 (get_tile "wellTypeList"))
+  (setq sStr1 (get_tile "netTypeList"))
 
   ;;;--- Make sure something was selected... 
   (if(= sStr1 "") 
-    (setq wellType nil) 
-    (setq wellType (nth (atoi sStr1) wellTypeList))
+    (setq netType nil) 
+    (setq netType (nth (atoi sStr1) netTypeList))
   )
   
   ;;;--- Get the selected item from the second list
