@@ -171,7 +171,7 @@
         wellAddonGuide3CountTotal 0
         wellAddonGuide4CountTotal 0
         wellLadderCountTotal 0
-        wellMeshCountTotal 0
+        wellJointsMeshCountTotal 0
         wellJointsConcreteVolumeTotal 0
         wellBaseConcreteVolumeTotal 0
         wellBasementSandVolumeTotal 0
@@ -218,25 +218,21 @@
   (if (< AddonsHeight wellBaseAddon5Height)
     (progn
       (princ AddonsHeight)
-    (setq BaseAddon5Count
-	   (+ BaseAddon5Count 1)
-    )
+      (setq BaseAddon5Count  (1+ BaseAddon5Count))
     )
     (if (< AddonsHeight wellBaseAddon10Height)
       (progn
         (princ AddonsHeight)
-	(setq BaseAddon10Count
-	       (+ BaseAddon10Count 1)
-	)
+	(setq BaseAddon10Count (1+ BaseAddon10Count))
       )
-	(progn
+      (progn
 	  (setq BaseAddonsList	(getWellBaseAddonsCount
-		  			(rem AddonsHeight wellBaseAddon10Height)
+		  			(- AddonsHeight wellBaseAddon10Height)
 		  			BaseAddon5Count
-		  			BaseAddon10Count)
+		  			(1+ BaseAddon10Count))
                 BaseAddon5Count (car BaseAddonsList)
-                BaseAddon10Count (+ (last BaseAddonsList) 1))
-      	)
+                BaseAddon10Count (last BaseAddonsList))
+      )
     )
   )
   (princ (list BaseAddon5Count BaseAddon10Count))
@@ -317,7 +313,8 @@
               topBottomList (cadr (assoc "ConnectedPipeInnerTopsAndBottoms" well)))
 
   	(setq pipesTopList (mapcar 'car topBottomList)
-              pipesBottomList (mapcar 'last topBottomList))
+              pipesBottomList (mapcar 'last topBottomList)
+              pipesDiameterList (mapcar '(lambda(x) (- (car x) (cadr x))) topBottomList))
 
   	(setq maxPipeTop (apply 'max pipesTopList)
               minPipeBottom (apply 'min pipesBottomList)
@@ -344,10 +341,12 @@
 				       wellBraceHeight)
 	      wellBaseTopHeight (last (assoc wellStructureInnerDiameter
 					  (last (assoc "ПК" wellTypes))))
-              wellBaseConcreteVolume (last (assoc "МБ М300" (last (assoc wellStructureInnerDiameter wellData))))
+              wellBaseBottomConcreteVolume (last (assoc "МБ М300" (last (assoc wellStructureInnerDiameter wellData))))
+              wellBaseAddonConcreteVolume (last (assoc "МБ М300+" (last (assoc wellStructureInnerDiameter wellData))))
               wellBasementSandVolume (last (assoc "Песок" (last (assoc wellStructureInnerDiameter wellData))))
               wellBaseBitumenVolume (last (assoc "Битум" (last (assoc wellStructureInnerDiameter wellData))))
               wellBaseAddonBitumenVolume (last (assoc "Битум+" (last (assoc wellStructureInnerDiameter wellData))))
+              
 	      wellTopAddon1000 (last (assoc "К-7-10" (last (assoc "КГ" wellTypes))))
 	      wellTopAddon1000Height (+ (cadar wellTopAddon1000) wellBraceHeight)
 	      wellTopAddon1000Brace2 (last (assoc "СК-2" wellTopAddon1000))
@@ -387,277 +386,400 @@
 )
 
 (defun getAddonsCount (/ startTime)
+    (defun *error* (msg) (princ (strcat "\n getAddonsCount error : " msg)) (princ)) ;_ end of defun
+    (setq startTime (getvar "millisecs"))
+    (if (eq wellType "ППК")
+        (setq wellBaseBottomCount 1
+              wellBaseAddon10Count 1
+              wellLadderCount 0
+        ) ;_ конец setq
+        (setq wellBaseBottomCount 0
+              wellBaseAddon10Count 0
+              wellLadderCount 1
+        ) ;_ конец setq
+    ) ;_ конец if
+    (setq wellBaseAddon5Count 0
+          wellBaseTopCount 1
+          wellBaseAddonBrace3Count 0
+          wellBaseAddonBrace4Count 0
+          wellBaseAddonGuide3Count 0
+          wellBaseAddonGuide4Count 0
+          wellTopAddon1000Count 0
+          wellTopAddon500Count 0
+          wellTopAddon150Count 0
+          wellTopAddon66Count 0
+          wellTopAddonBrace2Count 0
+          wellTopAddonBrace3Count 0
+          wellTopAddonBrace4Count 0
+          wellTopAddonBrace5Count 0
+          wellTopAddonGuide1Count 0
+          wellTopAddonsHeight 0
+          wellAddonBrace2Count 0
+          wellAddonBrace3Count 0
+          wellAddonBrace4Count 0
+          wellAddonBrace5Count 0
+          wellAddonGuide1Count 0
+          wellAddonGuide2Count 0
+          wellAddonGuide3Count 0
+          wellAddonGuide4Count 0
+          wellJointsMeshCount 0
+          wellJointsConcreteVolume 0
+          wellBaseConcreteVolume 0
+          wellOuterBitumenVolume 0
+    ) ;_ конец setq
+    (if (> wellBaseTopDepth TopDepth)
+        (setq wellBaseAddonsCountList (getWellBaseAddonsCount ;;(rem wellBaseTopDepth TopDepth)
+                                                              (- wellBaseTopDepth TopDepth)
+                                                              wellBaseAddon5Count
+                                                              wellBaseAddon10Count
+                                      ) ;_ конец getWellBaseAddonsCount
+              wellBaseAddon5Count     (car wellBaseAddonsCountList)
+              wellBaseAddon10Count    (last wellBaseAddonsCountList)
+        ) ;_ конец setq
+        (if (> wellAddonsHeight wellBaseAddon5Height)
+            (setq wellBaseAddon5Count (+ wellBaseAddon5Count 1))
+        ) ;_ конец if
+    ) ;_ конец if
+    (if (> wellBaseAddon10Count 5)
+        (setq wellBaseTopCount (1+ wellBaseTopCount))
+    ) ;_ конец if
+    (if (> wellBaseAddon10Count 3)
+        (setq wellBaseTopCount (1+ wellBaseTopCount))
+    ) ;_ конец if
+    (setq wellBaseAddonBrace2Count (+ wellBaseAddon5Count
+                                      (if (> wellBaseAddon10Count 0)
+                                          wellLadderCount
+                                          0
+                                      ) ;_ конец if
+                                   ) ;_ конец +
+          wellBaseAddonBrace3Count (+ wellBaseAddon10Count
+                                      (- wellBaseAddon5Count
+                                         (if (> wellBaseAddon5Count 0)
+                                             wellLadderCount
+                                             0
+                                         ) ;_ конец if
+                                      ) ;_ конец -
+                                   ) ;_ конец +
+          wellBaseAddonBrace4Count (- wellBaseAddon10Count
+                                      (if (> wellBaseAddon10Count 0)
+                                          wellLadderCount
+                                          0
+                                      ) ;_ конец if
+                                   ) ;_ конец -
+          wellBaseAddonGuide3Count (* (if (> wellBaseAddon10Count 0)
+                                          (- wellBaseAddon10Count wellBaseTopCount) ;_ конец -
+                                          0
+                                      ) ;_ конец if
+                                      3
+                                   ) ;_ конец *
+          wellBaseAddonGuide4Count wellBaseAddonGuide3Count
+    ) ;_ конец setq
+    (if (eq wellType "ППК")
+        (setq wellTopAddonsHeight (- wellAddonsHeight
+                                     (* wellBaseAddon5Height wellBaseAddon5Count) ;_ конец *
+                                     (* wellBaseAddon10Height (1- wellBaseAddon10Count)) ;_ конец *
+                                  ) ;_ конец -
+        ) ;_ конец setq
+        (setq wellTopAddonsHeight (- wellAddonsHeight
+                                     (* wellBaseAddon5Height wellBaseAddon5Count) ;_ конец *
+                                     (* wellBaseAddon10Height wellBaseAddon10Count) ;_ конец *
+                                  ) ;_ конец -
+        ) ;_ конец setq
+    ) ;_ конец if
+    (princ wellTopAddonsHeight)
+    (setq wellTopAddonsCountList (getWellTopAddonsCount
+                                     wellTopAddonsHeight          wellTopAddon1000Count
+                                     wellTopAddon500Count         wellTopAddon150Count
+                                     wellTopAddon66Count
+                                    ) ;_ endgetWellTopAddonsCount
+ ;_ конец getWellTopAddonsCount
+          wellTopAddon1000Count  (car wellTopAddonsCountList)
+          wellTopAddon500Count   (cadr wellTopAddonsCountList)
+          wellTopAddon150Count   (caddr wellTopAddonsCountList)
+          wellTopAddon66Count    (last wellTopAddonsCountList)
+    ) ;_ конец setq
+    (setq wellTopAddonBrace5Count 1
+          wellTopAddonBrace2Count (+ (* wellTopAddon150Count wellTopAddon150Brace2) ;_ конец *
+                                     (* wellTopAddon500Count wellTopAddon500Brace2) ;_ конец *
+                                     (* wellTopAddon1000Count wellTopAddon1000Brace2) ;_ конец *
+                                  ) ;_ конец +
+          wellTopAddonBrace3Count (+ (* wellTopAddon150Count wellTopAddon150Brace3) ;_ конец *
+                                     (* wellTopAddon500Count wellTopAddon500Brace3) ;_ конец *
+                                     (* wellTopAddon1000Count wellTopAddon1000Brace3) ;_ конец *
+                                  ) ;_ конец +
+          wellTopAddonBrace4Count (+ (* wellTopAddon150Count wellTopAddon150Brace4) ;_ конец *
+                                     (* wellTopAddon500Count wellTopAddon500Brace4) ;_ конец *
+                                     (* wellTopAddon1000Count wellTopAddon1000Brace4) ;_ конец *
+                                  ) ;_ конец +
+          wellTopAddonGuide1Count (- (+ (* wellTopAddon150Count wellTopAddon150Guide1) ;_ конец *
+                                        (* wellTopAddon500Count wellTopAddon500Guide1) ;_ конец *
+                                        (* wellTopAddon1000Count wellTopAddon1000Guide1) ;_ конец *
+                                     ) ;_ конец +
+                                     3
+                                  ) ;_ конец -
+    ) ;_ конец setq
+    (if (= wellTopAddon150Count 0)
+        (setq wellTopAddonBrace2Count (- wellTopAddonBrace2Count 1))
+    ) ;_ конец if
+    (if (eq wellType "ППК")
+        (setq WellHeight (+ wellBaseHeight
+                            (* wellBaseAddon5Height wellBaseAddon5Count)
+                            (* wellBaseAddon10Height (1- wellBaseAddon10Count)) ;_ конец *
+                         ) ;_ конец +
+        ) ;_ конец setq
+        (setq WellHeight (+ wellBaseHeight
+                            (* wellBaseAddon5Height wellBaseAddon5Count)
+                            (* wellBaseAddon10Height wellBaseAddon10Count) ;_ конец *
+                         ) ;_ конец +
+        ) ;_ конец setq
+    ) ;_ конец if
+    
+	(mapcar '(lambda (diam / diameter)
+                     (setq diameter (* diam 1000))
+                     (cond ((< diameter 300)(setq case "<400"))
+                           ((<= diameter 400)(setq case "400"))
+                           ((<= diameter 500)(setq case "500"))
+                           ((<= diameter 600)(setq case "600"))
+                           ((<= diameter 800)(setq case "800"))
+                           ((> diameter 800)(setq case "1000")))
+                     (setq wellJointsMeshCount (+ wellJointsMeshCount (last (assoc case wellJoints)))
+                           wellJointsConcreteVolume (+ wellJointsConcreteVolume (cadr (assoc case wellJoints))))
+                     (princ (strcat  "\n Диаметр: " (rtos diameter)
+                                     " Сетка: " (rtos wellJointsMeshCount)
+                                     " Бетон: " (rtos wellJointsConcreteVolume)))
+                 )
+	        pipesDiameterList
+	) ;_ end mapcar
 
-  (defun *error* (msg)
-      (princ (strcat "\n getAddonsCount error : " msg))
-      (princ)
-      ) ;_ end of defun
-
-  
-  (setq startTime (getvar "millisecs"))
-
-  	(if (eq wellType "ППК")
-          (setq wellBaseBottomCount 1
-                wellBaseAddon10Count 1
-                wellLadderCount 0)
-          (setq wellBaseBottomCount 0
-                wellBaseAddon10Count 0
-                wellLadderCount 1)
-        )
-  
-	(setq wellBaseAddon5Count 0
-              wellBaseTopCount 1
-              wellBaseAddonBrace3Count 0
-              wellBaseAddonBrace4Count 0
-              wellBaseAddonGuide3Count 0
-              wellBaseAddonGuide4Count 0
-	      wellTopAddon1000Count 0
-	      wellTopAddon500Count 0
-	      wellTopAddon150Count 0
-	      wellTopAddon66Count 0
-	      wellTopAddonBrace2Count 0
-	      wellTopAddonBrace3Count 0
-	      wellTopAddonBrace4Count 0
-	      wellTopAddonBrace5Count 0
-	      wellTopAddonGuide1Count 0
-	      wellTopAddonsHeight 0
-              wellAddonBrace2Count 0
-              wellAddonBrace3Count 0
-              wellAddonBrace4Count 0
-              wellAddonBrace5Count 0
-              wellAddonGuide1Count 0
-              wellAddonGuide2Count 0
-              wellAddonGuide3Count 0
-              wellAddonGuide4Count 0
-              wellMeshCount 0
-              wellJointsConcreteVolume 0
-              
-              wellOuterBitumenVolume 0)
-	
-
-	(if (> wellBaseTopDepth TopDepth)
-	  (setq wellBaseAddonsCountList (getWellBaseAddonsCount
-					  ;;(rem wellBaseTopDepth TopDepth)
-                                          (- wellBaseTopDepth TopDepth)
-					  wellBaseAddon5Count
-					  wellBaseAddon10Count)
-		wellBaseAddon5Count (car wellBaseAddonsCountList)
-		wellBaseAddon10Count (last wellBaseAddonsCountList)
-	  )
-	  (if (> wellAddonsHeight wellBaseAddon5Height)
-	    (setq wellBaseAddon5Count (+ wellBaseAddon5Count 1))
-	  )
-	)
-
-  	(if (> wellBaseAddon10Count 5)
-  	  (setq wellBaseTopCount (1+ wellBaseTopCount))
-        )
-	(if (> wellBaseAddon10Count 3)
-  	  (setq wellBaseTopCount (1+ wellBaseTopCount))
-        )
-
-  	(setq wellBaseAddonBrace2Count (+ wellBaseAddon5Count (if (> wellBaseAddon10Count 0) wellLadderCount 0))
-              wellBaseAddonBrace3Count (+ wellBaseAddon10Count (- wellBaseAddon5Count (if (> wellBaseAddon5Count 0) wellLadderCount 0)))
-              wellBaseAddonBrace4Count (- wellBaseAddon10Count (if (> wellBaseAddon10Count 0) wellLadderCount 0))
-	      wellBaseAddonGuide3Count (* (if (> wellBaseAddon10Count 0) (- wellBaseAddon10Count wellBaseTopCount) 0)  3)
-              wellBaseAddonGuide4Count wellBaseAddonGuide3Count)
-  
-        (if (eq wellType "ППК")      
-	  (setq wellTopAddonsHeight (- wellAddonsHeight
-					     (* wellBaseAddon5Height wellBaseAddon5Count)
-					     (* wellBaseAddon10Height (1- wellBaseAddon10Count))))
-          (setq wellTopAddonsHeight (- wellAddonsHeight
-					     (* wellBaseAddon5Height wellBaseAddon5Count)
-					     (* wellBaseAddon10Height wellBaseAddon10Count)))
-	)
-	(princ wellTopAddonsHeight)
-	(setq wellTopAddonsCountList (getWellTopAddonsCount
-				       wellTopAddonsHeight
-					  wellTopAddon1000Count wellTopAddon500Count
-					  wellTopAddon150Count  wellTopAddon66Count)
-	      wellTopAddon1000Count (car wellTopAddonsCountList)
-	      wellTopAddon500Count (cadr wellTopAddonsCountList)
-	      wellTopAddon150Count (caddr wellTopAddonsCountList)
-	      wellTopAddon66Count (last wellTopAddonsCountList)
-	  )
-
-	(setq wellTopAddonBrace5Count 1
-	      wellTopAddonBrace2Count (+ (* wellTopAddon150Count wellTopAddon150Brace2)
-					 (* wellTopAddon500Count wellTopAddon500Brace2)
-					 (* wellTopAddon1000Count wellTopAddon1000Brace2))
-	      wellTopAddonBrace3Count (+ (* wellTopAddon150Count wellTopAddon150Brace3)
-					 (* wellTopAddon500Count wellTopAddon500Brace3)
-					 (* wellTopAddon1000Count wellTopAddon1000Brace3))
-	      wellTopAddonBrace4Count (+ (* wellTopAddon150Count wellTopAddon150Brace4)
-					 (* wellTopAddon500Count wellTopAddon500Brace4)
-					 (* wellTopAddon1000Count wellTopAddon1000Brace4))
-	      wellTopAddonGuide1Count (- (+ (* wellTopAddon150Count wellTopAddon150Guide1)
-					 (* wellTopAddon500Count wellTopAddon500Guide1)
-					 (* wellTopAddon1000Count wellTopAddon1000Guide1))
-					 3)
-	  )
-	(if (= wellTopAddon150Count 0)
-	  (setq wellTopAddonBrace2Count (- wellTopAddonBrace2Count 1))
-	  )
-  
-  	(if (eq wellType "ППК")
-	  (setq WellHeight (+ wellBaseHeight
-			    (* wellBaseAddon5Height wellBaseAddon5Count)
-			    (* wellBaseAddon10Height (1- wellBaseAddon10Count))))
-          (setq WellHeight (+ wellBaseHeight
-			    (* wellBaseAddon5Height wellBaseAddon5Count)
-			    (* wellBaseAddon10Height wellBaseAddon10Count)))
-        )
-
-  	;;(if (eq wellType "ППК")
-          (setq wellOuterBitumenVolume (+ wellBaseBitumenVolume
-                                          (* wellBaseAddon5Count wellBaseAddonBitumenVolume 0.5)
-                                          (* wellBaseAddon10Count wellBaseAddonBitumenVolume)))
-          
-        ;;)
-  
-	(setq wellTopAddonsError (- wellTopAddonsHeight
-				    (* wellTopAddon1000Height wellTopAddon1000Count)
-				    (* wellTopAddon500Height wellTopAddon500Count)
-				    (* wellTopAddon150Height wellTopAddon150Count)
+    
+    (setq wellBaseConcreteVolume (+ wellBaseBottomConcreteVolume
+                                    (* wellBaseAddon5Count wellBaseAddonConcreteVolume 0.5)
+                                    (* wellBaseAddon10Count wellBaseAddonConcreteVolume)
+                                 ) ;_ конец +
+          wellOuterBitumenVolume (+ wellBaseBitumenVolume
+                                    (* wellBaseAddon5Count wellBaseAddonBitumenVolume 0.5) ;_ конец *
+                                    (* wellBaseAddon10Count wellBaseAddonBitumenVolume) ;_ конец *
+                                 ) ;_ конец +
+    ) ;_ конец setq
+    (setq wellTopAddonsError (- wellTopAddonsHeight
+                                (* wellTopAddon1000Height wellTopAddon1000Count) ;_ конец *
+                                (* wellTopAddon500Height wellTopAddon500Count) ;_ конец *
+                                (* wellTopAddon150Height wellTopAddon150Count) ;_ конец *
 ;;;				    (* wellTopAddon66Height wellTopAddon66Count)
-				 )
-	)
-
-  	(setq wellAddonBrace2Count (+ wellTopAddonBrace2Count wellBaseAddonBrace2Count)
-              wellAddonBrace3Count (+ wellTopAddonBrace3Count wellBaseAddonBrace3Count)
-              wellAddonBrace4Count (+ wellTopAddonBrace4Count wellBaseAddonBrace4Count)
-              wellAddonBrace5Count wellTopAddonBrace5Count
-              wellAddonGuide1Count wellTopAddonGuide1Count
-              wellAddonGuide2Count 0
-              wellAddonGuide3Count wellBaseAddonGuide3Count
-              wellAddonGuide4Count wellBaseAddonGuide4Count)
-  
+                             ) ;_ конец -
+    ) ;_ конец setq
+    (setq wellAddonBrace2Count (+ wellTopAddonBrace2Count wellBaseAddonBrace2Count) ;_ конец +
+          wellAddonBrace3Count (+ wellTopAddonBrace3Count wellBaseAddonBrace3Count) ;_ конец +
+          wellAddonBrace4Count (+ wellTopAddonBrace4Count wellBaseAddonBrace4Count) ;_ конец +
+          wellAddonBrace5Count wellTopAddonBrace5Count
+          wellAddonGuide1Count wellTopAddonGuide1Count
+          wellAddonGuide2Count 0
+          wellAddonGuide3Count wellBaseAddonGuide3Count
+          wellAddonGuide4Count wellBaseAddonGuide4Count
+    ) ;_ конец setq
 ;;;  	(princ "\n")
 ;;;  	(princ (strcat "(getAddonsCount)....."
 ;;;		       (vl-prin1-to-string (- (getvar "millisecs") startTime))))
 ;;;  	(princ "\n")
+) ;_ конец defun
 
-)
 
 (defun setRowData (/ startTime tableColumns)
-
-    (defun *error* (msg)
-      (princ (strcat "\n setRowData error : " msg))
-      (princ)
-      ) ;_ end of defun
-
-  (setq startTime (getvar "millisecs"))
-  
-  	(setq tableColumns 8)
-	
-	;;(alert (rtos wellAddonsHeight 2))
-	
-	(vla-InsertRows WellTable tableRows RowHeight 1)
-
+    (defun *error* (msg) (princ (strcat "\n setRowData error : " msg)) (princ)) ;_ end of defun
+    (setq startTime (getvar "millisecs"))
+    (setq tableColumns 8)
+    ;;(alert (rtos wellAddonsHeight 2))
+    (vla-InsertRows WellTable tableRows RowHeight 1)
 ;;;      	(princ "\n")
 ;;;  	(princ (strcat "(vla-InsertRows)....."
 ;;;		       (vl-prin1-to-string (- (getvar "millisecs") startTime))))
 ;;;  	(princ "\n")
-
-	
-	(vla-settext WellTable tableRows 0 wellName)
-	
-	(vla-settext WellTable tableRows 1
-	  (rtos wellRimElevation 2 2))	
-	
-	(vla-settext WellTable tableRows 2
-	  (rtos	wellSumpElevation 2 2 ))
-	
-	(vla-settext WellTable tableRows 3 (strcat wellType "-"
-	    (rtos (* wellStructureInnerDiameterOrWidth 10) 2 0)))
-	
-	(vla-settext WellTable tableRows 4
-	  (rtos wellStructureProfileHeight 2 2))
-	
-	(vla-settext WellTable tableRows 5 (rtos wellStructureFullHeight 2 2))
-
-	(vla-settext WellTable tableRows 6 (rtos (/ wellTopAddonsHeight 1000) 2 2))
-
-	(vla-settext WellTable tableRows 7 (rtos WellHeight 2 0))
-
-	(foreach wellDiameter wellDiameterList
-          (if (eq wellType "ППК")
-            (progn
-              (vla-settext WellTable tableRows tableColumns "-")
-              ;;(setq wellBaseAddon10Count (1+ wellBaseAddon10Count))
-            )
-            (progn
-	      (vla-settext WellTable tableRows tableColumns 1)
-	      (setq wellBaseCountTotal (1+ wellBaseCountTotal))
-            )
-          )
-	  (vla-settext WellTable tableRows (+ tableColumns 1) (ifZeroSetDash wellBaseAddon5Count))
-	  (if (> wellBaseAddon5Count 0) (setq wellBaseAddon5CountTotal (+ wellBaseAddon5CountTotal wellBaseAddon5Count)))
-	  (vla-settext WellTable tableRows (+ tableColumns 2) (ifZeroSetDash wellBaseAddon10Count))
-	  (if (> wellBaseAddon10Count 0) (setq wellBaseAddon10CountTotal (+ wellBaseAddon10CountTotal wellBaseAddon10Count)))
-          
-	  (setq tableColumns (+ tableColumns 3))
-          (if (eq wellType "ППК")
-            (progn
-              (vla-settext WellTable tableRows tableColumns wellBaseBottomCount)
-	      (setq wellBaseBottomCountTotal (1+ wellBaseBottomCountTotal))
-            )
+    (vla-settext WellTable tableRows 0 wellName)
+    (vla-settext WellTable tableRows 1 (rtos wellRimElevation 2 2))
+    (vla-settext WellTable tableRows 2 (rtos wellSumpElevation 2 2))
+    (vla-settext WellTable
+                 tableRows
+                 3
+                 (strcat wellType "-" (rtos (* wellStructureInnerDiameterOrWidth 10) 2 0))
+    ) ;_ конец vla-settext
+    (vla-settext WellTable tableRows 4 (rtos wellStructureProfileHeight 2 2))
+    (vla-settext WellTable tableRows 5 (rtos wellStructureFullHeight 2 2))
+    (vla-settext WellTable tableRows 6 (rtos (/ wellTopAddonsHeight 1000) 2 2))
+    (vla-settext WellTable tableRows 7 (rtos WellHeight 2 0))
+    (foreach wellDiameter wellDiameterList
+        (if (eq wellType "ППК")
+            (progn (vla-settext WellTable tableRows tableColumns "-")
+                   ;;(setq wellBaseAddon10Count (1+ wellBaseAddon10Count))
+            ) ;_ конец progn
+            (progn (vla-settext WellTable tableRows tableColumns 1)
+                   (setq wellBaseCountTotal (1+ wellBaseCountTotal))
+            ) ;_ конец progn
+        ) ;_ конец if
+        (vla-settext WellTable
+                     tableRows
+                     (+ tableColumns 1)
+                     (ifZeroSetDash wellBaseAddon5Count)
+        ) ;_ конец vla-settext
+        (if (> wellBaseAddon5Count 0)
+            (setq wellBaseAddon5CountTotal (+ wellBaseAddon5CountTotal wellBaseAddon5Count))
+        ) ;_ конец if
+        (vla-settext WellTable
+                     tableRows
+                     (+ tableColumns 2)
+                     (ifZeroSetDash wellBaseAddon10Count)
+        ) ;_ конец vla-settext
+        (if (> wellBaseAddon10Count 0)
+            (setq wellBaseAddon10CountTotal (+ wellBaseAddon10CountTotal wellBaseAddon10Count))
+        ) ;_ конец if
+        (setq tableColumns (+ tableColumns 3))
+        (if (eq wellType "ППК")
+            (progn (vla-settext WellTable tableRows tableColumns wellBaseBottomCount)
+                   (setq wellBaseBottomCountTotal (1+ wellBaseBottomCountTotal))
+            ) ;_ конец progn
             (vla-settext WellTable tableRows tableColumns "-")
-          )
-	  (vla-settext WellTable tableRows (+ tableColumns 1) wellBaseTopCount)
-	  (setq wellBaseTopCountTotal (1+ wellBaseTopCountTotal))
-	)
-	(setq tableColumns (+ tableColumns 2))
-	(vla-settext WellTable tableRows tableColumns (ifZeroSetDash wellTopAddon150Count))
-  	(if (> wellTopAddon150Count 0) (setq wellTopAddon150CountTotal (+ wellTopAddon150CountTotal wellTopAddon150Count)))
-	(vla-settext WellTable tableRows (+ tableColumns 1) (ifZeroSetDash wellTopAddon500Count))
-  	(if (> wellTopAddon500Count 0) (setq wellTopAddon500CountTotal (+ wellTopAddon500CountTotal wellTopAddon500Count)))
-	(vla-settext WellTable tableRows (+ tableColumns 2) (ifZeroSetDash wellTopAddon1000Count))
-  	(if (> wellTopAddon1000Count 0) (setq wellTopAddon1000CountTotal (+ wellTopAddon1000CountTotal wellTopAddon1000Count)))
-	(vla-settext WellTable tableRows (+ tableColumns 3) 1)
-  	(setq wellTopAddon66CountTotal (1+ wellTopAddon66CountTotal))
-  
-        (setq tableColumns (+ tableColumns 4))
-  	(vla-settext WellTable tableRows tableColumns (ifZeroSetDash wellAddonBrace2Count))
-        (if (> wellAddonBrace2Count 0) (setq wellAddonBrace2CountTotal (+ wellAddonBrace2CountTotal wellAddonBrace2Count)))
-  	(vla-settext WellTable tableRows (+ tableColumns 1) (ifZeroSetDash wellAddonBrace3Count))
-  	(if (> wellAddonBrace3Count 0) (setq wellAddonBrace3CountTotal (+ wellAddonBrace3CountTotal wellAddonBrace3Count)))
-  	(vla-settext WellTable tableRows (+ tableColumns 2) (ifZeroSetDash wellAddonBrace4Count))
-  	(if (> wellAddonBrace4Count 0) (setq wellAddonBrace4CountTotal (+ wellAddonBrace4CountTotal wellAddonBrace4Count)))
-  	(vla-settext WellTable tableRows (+ tableColumns 3) (ifZeroSetDash wellAddonBrace5Count))
-  	(if (> wellAddonBrace5Count 0) (setq wellAddonBrace5CountTotal (+ wellAddonBrace5CountTotal wellAddonBrace5Count)))
-  	(vla-settext WellTable tableRows (+ tableColumns 4) (ifZeroSetDash wellAddonGuide1Count))
-  	(if (> wellAddonGuide1Count 0) (setq wellAddonGuide1CountTotal (+ wellAddonGuide1CountTotal wellAddonGuide1Count)))
-  	(vla-settext WellTable tableRows (+ tableColumns 5) (ifZeroSetDash wellAddonGuide3Count))
-  	(if (> wellAddonGuide3Count 0) (setq wellAddonGuide3CountTotal (+ wellAddonGuide3CountTotal wellAddonGuide3Count)))
-
-  	(setq tableColumns (+ tableColumns 6))
-	(vla-settext WellTable tableRows tableColumns 1)
-  	(setq wellTopHeadCountTotal (1+ wellTopHeadCountTotal))
-  	(vla-settext WellTable tableRows (+ tableColumns 1) (ifZeroSetDash wellLadderCount))
-  	(if (> wellLadderCount 0) (setq wellLadderCountTotal (+ wellLadderCountTotal wellLadderCount)))
-  
-  	(setq tableColumns (+ tableColumns 3))
-  	(vla-settext WellTable tableRows (+ tableColumns 1) (ifZeroSetDash wellBaseConcreteVolume))
-  	(if (> wellBaseConcreteVolume 0) (setq wellBaseConcreteVolumeTotal (+ wellBaseConcreteVolumeTotal wellBaseConcreteVolume)))
-  	(vla-settext WellTable tableRows (+ tableColumns 2) (ifZeroSetDash wellBasementSandVolume))
-  	(if (> wellBasementSandVolume 0) (setq wellBasementSandVolumeTotal (+ wellBasementSandVolumeTotal wellBasementSandVolume)))
-  	(vla-settext WellTable tableRows (+ tableColumns 3) (ifZeroSetDash wellOuterBitumenVolume))
-  	(if (> wellOuterBitumenVolume 0) (setq wellOuterBitumenVolumeTotal (+ wellOuterBitumenVolumeTotal wellOuterBitumenVolume)))
-  
-	(setq tableColumns (+ tableColumns 4))
-	(vla-settext WellTable tableRows tableColumns (fix wellTopAddonsError))
-	
-	(setq tableRows (1+ tableRows))
-	(vla-SetTextHeight WellTable acDataRow DataRowHeight)
-  
+        ) ;_ конец if
+        (vla-settext WellTable tableRows (+ tableColumns 1) wellBaseTopCount)
+        (setq wellBaseTopCountTotal (1+ wellBaseTopCountTotal))
+    ) ;_ конец foreach
+    (setq tableColumns (+ tableColumns 2))
+    (vla-settext WellTable
+                 tableRows
+                 tableColumns
+                 (ifZeroSetDash wellTopAddon150Count)
+    ) ;_ конец vla-settext
+    (if (> wellTopAddon150Count 0)
+        (setq wellTopAddon150CountTotal (+ wellTopAddon150CountTotal wellTopAddon150Count))
+    ) ;_ конец if
+    (vla-settext WellTable
+                 tableRows
+                 (+ tableColumns 1)
+                 (ifZeroSetDash wellTopAddon500Count)
+    ) ;_ конец vla-settext
+    (if (> wellTopAddon500Count 0)
+        (setq wellTopAddon500CountTotal (+ wellTopAddon500CountTotal wellTopAddon500Count))
+    ) ;_ конец if
+    (vla-settext WellTable
+                 tableRows
+                 (+ tableColumns 2)
+                 (ifZeroSetDash wellTopAddon1000Count)
+    ) ;_ конец vla-settext
+    (if (> wellTopAddon1000Count 0)
+        (setq wellTopAddon1000CountTotal (+ wellTopAddon1000CountTotal wellTopAddon1000Count))
+    ) ;_ конец if
+    (vla-settext WellTable tableRows (+ tableColumns 3) 1)
+    (setq wellTopAddon66CountTotal (1+ wellTopAddon66CountTotal))
+    (setq tableColumns (+ tableColumns 4))
+    (vla-settext WellTable
+                 tableRows
+                 tableColumns
+                 (ifZeroSetDash wellAddonBrace2Count)
+    ) ;_ конец vla-settext
+    (if (> wellAddonBrace2Count 0)
+        (setq wellAddonBrace2CountTotal (+ wellAddonBrace2CountTotal wellAddonBrace2Count))
+    ) ;_ конец if
+    (vla-settext WellTable
+                 tableRows
+                 (+ tableColumns 1)
+                 (ifZeroSetDash wellAddonBrace3Count)
+    ) ;_ конец vla-settext
+    (if (> wellAddonBrace3Count 0)
+        (setq wellAddonBrace3CountTotal (+ wellAddonBrace3CountTotal wellAddonBrace3Count))
+    ) ;_ конец if
+    (vla-settext WellTable
+                 tableRows
+                 (+ tableColumns 2)
+                 (ifZeroSetDash wellAddonBrace4Count)
+    ) ;_ конец vla-settext
+    (if (> wellAddonBrace4Count 0)
+        (setq wellAddonBrace4CountTotal (+ wellAddonBrace4CountTotal wellAddonBrace4Count))
+    ) ;_ конец if
+    (vla-settext WellTable
+                 tableRows
+                 (+ tableColumns 3)
+                 (ifZeroSetDash wellAddonBrace5Count)
+    ) ;_ конец vla-settext
+    (if (> wellAddonBrace5Count 0)
+        (setq wellAddonBrace5CountTotal (+ wellAddonBrace5CountTotal wellAddonBrace5Count))
+    ) ;_ конец if
+    (vla-settext WellTable
+                 tableRows
+                 (+ tableColumns 4)
+                 (ifZeroSetDash wellAddonGuide1Count)
+    ) ;_ конец vla-settext
+    (if (> wellAddonGuide1Count 0)
+        (setq wellAddonGuide1CountTotal (+ wellAddonGuide1CountTotal wellAddonGuide1Count))
+    ) ;_ конец if
+    (vla-settext WellTable
+                 tableRows
+                 (+ tableColumns 5)
+                 (ifZeroSetDash wellAddonGuide3Count)
+    ) ;_ конец vla-settext
+    (if (> wellAddonGuide3Count 0)
+        (setq wellAddonGuide3CountTotal (+ wellAddonGuide3CountTotal wellAddonGuide3Count))
+    ) ;_ конец if
+    (setq tableColumns (+ tableColumns 6))
+    (vla-settext WellTable tableRows tableColumns 1)
+    (setq wellTopHeadCountTotal (1+ wellTopHeadCountTotal))
+    (vla-settext WellTable
+                 tableRows
+                 (+ tableColumns 1)
+                 (ifZeroSetDash wellLadderCount)
+    ) ;_ конец vla-settext
+    (if (> wellLadderCount 0)
+        (setq wellLadderCountTotal (+ wellLadderCountTotal wellLadderCount))
+    ) ;_ конец if
+    (vla-settext WellTable
+                 tableRows
+                 (+ tableColumns 2)
+                 (ifZeroSetDash wellJointsMeshCount)
+    ) ;_ конец vla-settext
+    (if (> wellJointsMeshCount 0)
+        (setq wellJointsMeshCountTotal (+ wellJointsMeshCountTotal wellJointsMeshCount))
+    ) ;_ конец if
+    
+    (setq tableColumns (+ tableColumns 3))
+    (vla-settext WellTable
+                 tableRows
+                 tableColumns
+                 (ifZeroSetDash wellJointsConcreteVolume)
+    ) ;_ конец vla-settext
+    (if (> wellJointsConcreteVolume 0)
+        (setq wellJointsConcreteVolumeTotal (+ wellJointsConcreteVolumeTotal wellJointsConcreteVolume))
+    ) ;_ конец if
+    (vla-settext WellTable
+                 tableRows
+                 (+ tableColumns 1)
+                 (ifZeroSetDash wellBaseConcreteVolume)
+    ) ;_ конец vla-settext
+    (if (> wellBaseConcreteVolume 0)
+        (setq wellBaseConcreteVolumeTotal (+ wellBaseConcreteVolumeTotal wellBaseConcreteVolume))
+    ) ;_ конец if
+    (vla-settext WellTable
+                 tableRows
+                 (+ tableColumns 2)
+                 (ifZeroSetDash wellBasementSandVolume)
+    ) ;_ конец vla-settext
+    (if (> wellBasementSandVolume 0)
+        (setq wellBasementSandVolumeTotal (+ wellBasementSandVolumeTotal wellBasementSandVolume))
+    ) ;_ конец if
+    (vla-settext WellTable
+                 tableRows
+                 (+ tableColumns 3)
+                 (ifZeroSetDash wellOuterBitumenVolume)
+    ) ;_ конец vla-settext
+    (if (> wellOuterBitumenVolume 0)
+        (setq wellOuterBitumenVolumeTotal (+ wellOuterBitumenVolumeTotal wellOuterBitumenVolume))
+    ) ;_ конец if
+    (setq tableColumns (+ tableColumns 4))
+    (vla-settext WellTable tableRows tableColumns (fix wellTopAddonsError))
+    (setq tableRows (1+ tableRows))
+    ;;(vla-SetTextHeight WellTable acDataRow DataRowHeight)
 ;;;    	(princ "\n")
 ;;;  	(princ (strcat "(setRowData)....."
 ;;;		       (vl-prin1-to-string (- (getvar "millisecs") startTime))))
 ;;;  	(princ "\n")
+) ;_ конец defun
 
-)
 
 (defun setRowTotal (/)
   (defun *error* (msg)
@@ -686,11 +808,12 @@
   (vla-settext WellTable tableRows 22 wellAddonGuide3CountTotal)
   (vla-settext WellTable tableRows 23 wellTopHeadCountTotal)
   (vla-settext WellTable tableRows 24 wellLadderCountTotal)
-  (vla-settext WellTable tableRows 25 wellMeshCountTotal)
+  (vla-settext WellTable tableRows 25 wellJointsMeshCountTotal)
   (vla-settext WellTable tableRows 26 wellJointsConcreteVolumeTotal)
   (vla-settext WellTable tableRows 27 wellBaseConcreteVolumeTotal)
   (vla-settext WellTable tableRows 28 wellBasementSandVolumeTotal)
   (vla-settext WellTable tableRows 29 wellOuterBitumenVolumeTotal)
+  (vla-SetTextHeight WellTable acDataRow DataRowHeight)
 )
 
 (defun ifZeroSetDash (value /)
