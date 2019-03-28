@@ -214,10 +214,19 @@
 )
 
 (defun getWellBaseAddonsCount (AddonsHeight BaseAddon5Count BaseAddon10Count /)
+    
+    (if (or (eq BaseAddon10Count 4) (eq BaseAddon10Count 6))
+        (progn
+            (- AddonsHeight wellBaseTopHeight)
+            (setq wellBaseTopCount (1+ wellBaseTopCount))))
 
   (if (< AddonsHeight wellBaseAddon5Height)
     (progn
       (princ AddonsHeight)
+      (if (or (eq BaseAddon10Count 3) (eq BaseAddon10Count 5))
+        (progn
+            (- AddonsHeight wellBaseTopHeight)
+            (setq wellBaseTopCount (1+ wellBaseTopCount))))
       (setq BaseAddon5Count  (1+ BaseAddon5Count))
     )
     (if (< AddonsHeight wellBaseAddon10Height)
@@ -258,8 +267,8 @@
 			    )
     )
   )
-;;;  (princ "\n" )
-;;;  (princ  TopAddon1000Count)
+  (princ "\n" )
+  (princ  TopAddon1000Count)
   
   (setq AddonsHeightDiv (fix (/ TopAddonsHeight wellTopAddon500Height)))
   (if (> AddonsHeightDiv 0)
@@ -270,8 +279,8 @@
 			   )
     )
   )
-;;;  (princ "\n" )
-;;;  (princ  TopAddon500Count)
+  (princ "\n" )
+  (princ  TopAddon500Count)
   
   (setq AddonsHeightDiv (fix (/ TopAddonsHeight wellTopAddon150Height)))
   (if (> AddonsHeightDiv 0)
@@ -281,8 +290,8 @@
 			   )
     )
   )
-;;;  (princ "\n" )
-;;;  (princ  TopAddon150Count)
+  (princ "\n" )
+  (princ  TopAddon150Count)
   
   (setq AddonsHeightDiv (fix (/ TopAddonsHeight wellTopAddon66Height)))
   (if (> AddonsHeightDiv 0)
@@ -292,8 +301,8 @@
 			   )
     )
   )
-;;;  (princ "\n" )
-;;;  (princ  TopAddon66Count)
+  (princ "\n" )
+  (princ  TopAddon66Count)
   
   (list	TopAddon1000Count
 	TopAddon500Count
@@ -440,12 +449,12 @@
             (setq wellBaseAddon5Count (+ wellBaseAddon5Count 1))
         ) ;_ конец if
     ) ;_ конец if
-    (if (> wellBaseAddon10Count 5)
-        (setq wellBaseTopCount (1+ wellBaseTopCount))
-    ) ;_ конец if
-    (if (> wellBaseAddon10Count 3)
-        (setq wellBaseTopCount (1+ wellBaseTopCount))
-    ) ;_ конец if
+;;;    (if (> wellBaseAddon10Count 5)
+;;;        (setq wellBaseTopCount (1+ wellBaseTopCount))
+;;;    ) ;_ конец if
+;;;    (if (> wellBaseAddon10Count 3)
+;;;        (setq wellBaseTopCount (1+ wellBaseTopCount))
+;;;    ) ;_ конец if
     (setq wellBaseAddonBrace2Count (+ wellBaseAddon5Count
                                       (if (> wellBaseAddon10Count 0)
                                           wellLadderCount
@@ -476,8 +485,9 @@
     ) ;_ конец setq
     (if (eq wellType "ППК")
         (setq wellTopAddonsHeight (- wellAddonsHeight
-                                     (* wellBaseAddon5Height wellBaseAddon5Count) ;_ конец *
-                                     (* wellBaseAddon10Height (1- wellBaseAddon10Count)) ;_ конец *
+                                     (* wellBaseAddon5Height wellBaseAddon5Count)
+                                     (* wellBaseAddon10Height (1- wellBaseAddon10Count))
+                                     (* wellBaseTopHeight (1- wellBaseTopCount))
                                   ) ;_ конец -
         ) ;_ конец setq
         (setq wellTopAddonsHeight (- wellAddonsHeight
@@ -524,7 +534,8 @@
     (if (eq wellType "ППК")
         (setq WellHeight (+ wellBaseHeight
                             (* wellBaseAddon5Height wellBaseAddon5Count)
-                            (* wellBaseAddon10Height (1- wellBaseAddon10Count)) ;_ конец *
+                            (* wellBaseAddon10Height (1- wellBaseAddon10Count))
+                            (* wellBaseTopHeight (1- wellBaseTopCount))
                          ) ;_ конец +
         ) ;_ конец setq
         (setq WellHeight (+ wellBaseHeight
